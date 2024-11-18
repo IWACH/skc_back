@@ -2,36 +2,13 @@ import {
   PrismaClientKnownRequestError, 
   PrismaClientValidationError 
 } from "@prisma/client/runtime/library";
-import { errorMessages } from "../constants/error-messages";
-
-interface ErrorResponse {
-  success: boolean;
-  message: string;
-  statusCode: number;
-  error?: string;
-}
-
-const getErrorMessage = (
-  code: string, 
-  replaces: string[] = [], 
-  lang: keyof typeof errorMessages = 'es'
-): string => {
-  let errorMsg = errorMessages[lang][code as keyof typeof errorMessages[typeof lang]];
-  
-  if (errorMsg) {
-    replaces.forEach((value, index) => {
-      errorMsg = errorMsg.replace(`$${index}`, value);
-    });
-    return errorMsg;
-  }
-  
-  return errorMessages[lang].defaultError;
-};
+import { IErrorResponse } from '../interfaces/error-response.interface';
+import { getErrorMessage } from '../utils/get-error-message.util';
 
 export const handlePrismaError = (
   error: unknown,
   defaultMessage: string = "Error en la operación"
-): ErrorResponse => {
+): IErrorResponse => {
   if (error instanceof PrismaClientKnownRequestError) {
     const details = error.meta?.target 
       ? Array.isArray(error.meta.target)
@@ -42,11 +19,11 @@ export const handlePrismaError = (
     const message = getErrorMessage(error.code, [details]);
     
     const statusCodeMap: Record<string, number> = {
-      P2002: 400, // Unique constraint
-      P2003: 400, // Foreign key constraint
-      P2004: 400, // Not null constraint
-      P2014: 400, // Required relation
-      P2025: 404, // Not found
+      P2002: 400,
+      P2003: 400,
+      P2004: 400,
+      P2014: 400,
+      P2025: 404,
     };
 
     return {

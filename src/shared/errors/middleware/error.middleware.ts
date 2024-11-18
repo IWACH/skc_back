@@ -14,6 +14,5 @@ export const errorMiddleware = (
   console.log('==================');
 
   const errorResponse = handlePrismaError(error);
-
   return res.status(errorResponse.statusCode).json(errorResponse);
 }; 

@@ -1,9 +1,10 @@
-import { createBaseController } from "../../base/baseController";
+import { createBaseController } from '../../base/baseController';
+import { EntityType } from '../../enums/entity.enum';
 
-const typeController = createBaseController("type", {
+const typeController = createBaseController(EntityType.TYPE, {
   searchFields: ["type", "value", "label"],
   excludedFields: ["createdAt", "updatedAt"],
-  defaultInclude: {}, // Puedes agregar relaciones si las necesitas
+  defaultInclude: {},
 });
 
 export const { list, get, create, update, remove } = typeController;

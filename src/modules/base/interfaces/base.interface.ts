@@ -1,6 +1,6 @@
 export interface IBaseControllerOptions {
   excludedFields?: string[];
-  defaultInclude?: Record<string, any>;
+  defaultInclude?: any;
   searchFields?: string[];
 }
 
@@ -10,4 +10,4 @@ export interface IBaseResponse {
   message?: string;
   error?: string;
   meta?: Record<string, any>;
-} 
+}

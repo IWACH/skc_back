@@ -1,20 +1,30 @@
-import { Request, Response, NextFunction } from "express";
+import { NextFunction, Request, Response } from "express";
+
 import prisma from "../../config/database";
-import { Prisma } from "@prisma/client";
+
 import {
   IBaseControllerOptions,
   IBaseResponse,
 } from "./interfaces/base.interface";
+import { handlePrismaError } from "../../shared/errors/helpers/prisma-error-handler";
 
 export const createBaseController = (
   model: string,
   options: IBaseControllerOptions = {}
 ) => {
   const {
-    excludedFields = ["createdAt", "updatedAt"],
+    excludedFields = [],
     defaultInclude = {},
     searchFields = [],
   } = options;
+
+  const getEntityMessages = () => ({
+    notFound: `${model} no encontrado`,
+    created: `${model} creado exitosamente`,
+    updated: `${model} actualizado exitosamente`,
+    deleted: `${model} eliminado exitosamente`,
+    listed: `${model}s listados exitosamente`,
+  });
 
   const sendResponse = (
     res: Response,
@@ -83,7 +93,7 @@ export const createBaseController = (
       sendResponse(res, {
         success: true,
         data: cleanedItems,
-        message: `${model} listados exitosamente`,
+        message: getEntityMessages().listed,
         meta: {
           total,
           page: parseInt(req.query.page as string) || 1,
@@ -91,7 +101,8 @@ export const createBaseController = (
         },
       });
     } catch (error) {
-      next(error);
+      const errorResponse = handlePrismaError(error);
+      sendResponse(res, errorResponse, errorResponse.statusCode);
     }
   };
 
@@ -112,7 +123,7 @@ export const createBaseController = (
           res,
           {
             success: false,
-            message: `No se encontró el ${model} con ID ${id}`,
+            message: getEntityMessages().notFound,
           },
           404
         );
@@ -122,10 +133,11 @@ export const createBaseController = (
       sendResponse(res, {
         success: true,
         data: excludeFields(item),
-        message: `${model} obtenido exitosamente`,
+        message: getEntityMessages().updated,
       });
     } catch (error) {
-      next(error);
+      const errorResponse = handlePrismaError(error);
+      sendResponse(res, errorResponse, errorResponse.statusCode);
     }
   };
 
@@ -145,26 +157,13 @@ export const createBaseController = (
         {
           success: true,
           data: excludeFields(newItem),
-          message: `${model} creado exitosamente`,
+          message: getEntityMessages().created,
         },
         201
       );
     } catch (error) {
-      if (error instanceof Prisma.PrismaClientKnownRequestError) {
-        if (error.code === "P2002") {
-          sendResponse(
-            res,
-            {
-              success: false,
-              message: "Error de restricción única",
-              meta: { field: error.meta?.target },
-            },
-            409
-          );
-          return;
-        }
-      }
-      next(error);
+      const errorResponse = handlePrismaError(error, `Error al crear ${model}`);
+      sendResponse(res, errorResponse, errorResponse.statusCode);
     }
   };
 
@@ -175,22 +174,6 @@ export const createBaseController = (
   ): Promise<void> => {
     try {
       const { id } = req.params;
-      const existingItem = await (prisma as any)[model].findUnique({
-        where: { id: Number(id) },
-      });
-
-      if (!existingItem) {
-        sendResponse(
-          res,
-          {
-            success: false,
-            message: `No se encontró el ${model} con ID ${id}`,
-          },
-          404
-        );
-        return;
-      }
-
       const updatedItem = await (prisma as any)[model].update({
         where: { id: Number(id) },
         data: req.body,
@@ -200,24 +183,14 @@ export const createBaseController = (
       sendResponse(res, {
         success: true,
         data: excludeFields(updatedItem),
-        message: `${model} actualizado exitosamente`,
+        message: getEntityMessages().updated,
       });
     } catch (error) {
-      if (error instanceof Prisma.PrismaClientKnownRequestError) {
-        if (error.code === "P2002") {
-          sendResponse(
-            res,
-            {
-              success: false,
-              message: "Error de restricción única",
-              meta: { field: error.meta?.target },
-            },
-            409
-          );
-          return;
-        }
-      }
-      next(error);
+      const errorResponse = handlePrismaError(
+        error,
+        `Error al actualizar ${model}`
+      );
+      sendResponse(res, errorResponse, errorResponse.statusCode);
     }
   };
 
@@ -237,7 +210,7 @@ export const createBaseController = (
           res,
           {
             success: false,
-            message: `No se encontró el ${model} con ID ${id}`,
+            message: getEntityMessages().notFound,
           },
           404
         );
@@ -251,10 +224,14 @@ export const createBaseController = (
       sendResponse(res, {
         success: true,
         data: { id: Number(id) },
-        message: `${model} eliminado exitosamente`,
+        message: getEntityMessages().deleted,
       });
     } catch (error) {
-      next(error);
+      const errorResponse = handlePrismaError(
+        error,
+        `Error al eliminar ${model}`
+      );
+      sendResponse(res, errorResponse, errorResponse.statusCode);
     }
   };
 

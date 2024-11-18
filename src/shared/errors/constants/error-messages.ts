@@ -5,11 +5,6 @@ export const errorMessages = {
     invalidToken: "El token no es válido",
     unauthorized: "No está autorizado",
     
-    // Errores de recursos no encontrados
-    notFound: "No se encontró",
-    typeNotFound: "Tipo no encontrado",
-    userNotFound: "Usuario no encontrado",
-    
     // Errores de Prisma
     P2002: "$0 ya existe",
     P2003: "Error en la relación: $0",

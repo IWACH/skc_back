@@ -1,6 +1,6 @@
 import { Router } from "express";
 
-import { validateSchema } from "../../../shared/middleware/validateSchema";
+import { validateSchema } from "../../../shared/errors/middleware/validate-schema.middleware";
 import {
   create,
   get,
@@ -8,14 +8,19 @@ import {
   remove,
   update,
 } from "../controllers/type.controller";
-import { typeSchema } from "../schemas/type.schema";
+import {
+  createTypeSchema,
+  getTypeSchema,
+  listTypeSchema,
+  updateTypeSchema,
+} from "../schemas/type.schema";
 
 const router = Router();
 
-router.get("/type", list);
-router.get("/type/:id", get);
-router.post("/type", validateSchema(typeSchema), create);
-router.put("/type/:id", validateSchema(typeSchema), update);
-router.delete("/type/:id", remove);
+router.get("/type", validateSchema(listTypeSchema), list);
+router.get("/type/:id", validateSchema(getTypeSchema), get);
+router.post("/type", validateSchema(createTypeSchema), create);
+router.put("/type/:id", validateSchema(updateTypeSchema), update);
+router.delete("/type/:id", validateSchema(getTypeSchema), remove);
 
 export default router;

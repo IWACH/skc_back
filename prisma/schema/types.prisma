@@ -5,4 +5,7 @@ model Type {
   label String
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+
+  @@map("types")
+  @@index([type])
 }

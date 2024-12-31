@@ -1,7 +1,8 @@
 import { z } from "zod";
+
 import {
-  paginationSchema,
   idParamSchema,
+  paginationSchema,
 } from "../../../shared/schemas/baseValidations.schema.ts";
 
 const typeBodySchema = z.object({
@@ -25,27 +26,23 @@ const typeBodySchema = z.object({
     .min(1, "La etiqueta no puede estar vacía"),
 });
 
-// Schema para listar
 export const listTypeSchema = z.object({
   query: paginationSchema,
 });
 
-// Schema para obtener y eliminar
 export const getTypeSchema = z.object({
   params: idParamSchema,
 });
 
-// Schema para crear y actualizar
 export const createTypeSchema = z.object({
   body: typeBodySchema,
 });
 
 export const updateTypeSchema = z.object({
-  params: z.object({
-    id: z.string({
-      required_error: "El ID es requerido",
-      invalid_type_error: "El ID debe ser un texto",
-    }),
-  }),
-  body: typeBodySchema,
+  params: idParamSchema,
+  body: typeBodySchema.partial(),
+});
+
+export const deleteTypeSchema = z.object({
+  params: idParamSchema,
 });

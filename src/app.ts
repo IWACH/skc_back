@@ -1,27 +1,36 @@
 // Importaciones
 import express from "express";
+import cors from "cors";
 
 import routes from "./routes";
 import { errorMiddleware } from "./shared/errors/middleware/error.middleware";
 
-// Configuración de constantes
+// Constants configuration
 const PORT = 8000;
 
-// Inicialización de la aplicación
+// Initialize the application
 const app = express();
 
 // Middleware
+app.use(
+  cors({
+    origin: ["http://localhost:3000", "https://tudominio.com"],
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  })
+);
+
 app.use(express.json());
 
-// Usar las rutas centralizadas
+// Use centralized routes
 app.use("/api", routes);
 
-// Iniciar el servidor
+// Start the server
 app.listen(PORT, () => {
   return console.log(`Server is running on http://localhost:${PORT}`);
 });
 
-// Middleware de error debe ir después de las rutas
+// Error middleware
 app.use(
   (
     err: Error,

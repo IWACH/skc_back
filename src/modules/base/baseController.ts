@@ -20,10 +20,11 @@ export const createBaseController = (
 
   const getEntityMessages = () => ({
     notFound: `${model} no encontrado`,
+    listedAll: `${model}s listados exitosamente`,
+    listed: `${model} listado exitosamente`,
     created: `${model} creado exitosamente`,
     updated: `${model} actualizado exitosamente`,
     deleted: `${model} eliminado exitosamente`,
-    listed: `${model}s listados exitosamente`,
   });
 
   const sendResponse = (
@@ -93,7 +94,7 @@ export const createBaseController = (
       sendResponse(res, {
         success: true,
         data: cleanedItems,
-        message: getEntityMessages().listed,
+        message: getEntityMessages().listedAll,
         meta: {
           total,
           page: parseInt(req.query.page as string) || 1,
@@ -133,7 +134,7 @@ export const createBaseController = (
       sendResponse(res, {
         success: true,
         data: excludeFields(item),
-        message: getEntityMessages().updated,
+        message: getEntityMessages().listed,
       });
     } catch (error) {
       const errorResponse = handlePrismaError(error);

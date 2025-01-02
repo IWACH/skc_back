@@ -1,0 +1,19 @@
+model State {
+  id          Int      @id @default(autoincrement())
+  name        String
+  code        String?  @db.VarChar(5)
+  
+  // Metadatos
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  // Relaciones
+  country     Country  @relation(fields: [countryId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  countryId   Int      @map("country_id")
+  provinces   Province[]
+
+  @@map("states")
+  @@index([countryId])
+  @@unique([countryId, name])
+} 

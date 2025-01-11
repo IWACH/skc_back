@@ -7,6 +7,7 @@ import { EntityType } from "../../enums/entity.enum";
 const stateController = createBaseController(EntityType.STATE, {
   searchFields: ["name", "code"],
   excludedFields: ["createdAt", "updatedAt"],
+  customSort: { field: "name", order: "asc" },
 });
 
 const createState = async (

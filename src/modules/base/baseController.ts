@@ -16,6 +16,7 @@ export const createBaseController = (
     excludedFields = [],
     defaultInclude = {},
     searchFields = [],
+    customSort = { field: "createdAt", order: "desc" },
   } = options;
 
   const getEntityMessages = () => ({
@@ -36,22 +37,22 @@ export const createBaseController = (
   };
 
   const prepareFindObject = (query: any = {}) => {
-    const { search, page, limit, ...filters } = query;
+    const { search, sortField, sortOrder, ...filters } = query;
 
     const findObject: any = {
       where: {},
       include: defaultInclude,
+      orderBy: {
+        [sortField || customSort.field]: (
+          sortOrder || customSort.order
+        ).toLowerCase(),
+      },
     };
 
     if (search && searchFields.length > 0) {
       findObject.where.OR = searchFields.map((field: string) => ({
         [field]: { contains: search },
       }));
-    }
-
-    if (page && limit) {
-      findObject.skip = (parseInt(page) - 1) * parseInt(limit);
-      findObject.take = parseInt(limit);
     }
 
     // Agregar filtros adicionales
@@ -70,6 +71,23 @@ export const createBaseController = (
     return newObj;
   };
 
+  const cleanObjectBeforeSend = (obj: any): any => {
+    const cleaned = excludeFields(obj);
+    // Aquí puedes agregar lógica adicional de limpieza
+    return cleaned;
+  };
+
+  const prepareData = (body: any): any => {
+    // Omitir campos que no deberían actualizarse
+    const { id, createdAt, updatedAt, ...data } = body;
+    return data;
+  };
+
+  const postUpdate = (result: any): void => {
+    // Hook para ejecutar lógica después de actualizar
+    // Puedes sobrescribir esta función en controladores específicos
+  };
+
   // Funciones CRUD
   const list = async (
     req: Request,
@@ -78,32 +96,16 @@ export const createBaseController = (
   ): Promise<void> => {
     try {
       const findObject = prepareFindObject(req.query);
-
-      const [total, items] = await prisma.$transaction([
-        (prisma as any)[model].count({ where: findObject.where }),
-        (prisma as any)[model].findMany({
-          ...findObject,
-          orderBy: {
-            createdAt: "desc",
-          },
-        }),
-      ]);
-
-      const cleanedItems = items.map((item) => excludeFields(item));
+      const items = await (prisma as any)[model].findMany(findObject);
+      const cleanedItems = items.map(cleanObjectBeforeSend);
 
       sendResponse(res, {
         success: true,
         data: cleanedItems,
         message: getEntityMessages().listedAll,
-        meta: {
-          total,
-          page: parseInt(req.query.page as string) || 1,
-          limit: parseInt(req.query.limit as string) || total,
-        },
       });
     } catch (error) {
-      const errorResponse = handlePrismaError(error);
-      sendResponse(res, errorResponse, errorResponse.statusCode);
+      next(error);
     }
   };
 
@@ -148,8 +150,9 @@ export const createBaseController = (
     next: NextFunction
   ): Promise<void> => {
     try {
+      const data = prepareData(req.body);
       const newItem = await (prisma as any)[model].create({
-        data: req.body,
+        data,
         include: defaultInclude,
       });
 
@@ -157,14 +160,13 @@ export const createBaseController = (
         res,
         {
           success: true,
-          data: excludeFields(newItem),
+          data: cleanObjectBeforeSend(newItem),
           message: getEntityMessages().created,
         },
         201
       );
     } catch (error) {
-      const errorResponse = handlePrismaError(error, `Error al crear ${model}`);
-      sendResponse(res, errorResponse, errorResponse.statusCode);
+      next(error);
     }
   };
 
@@ -175,23 +177,39 @@ export const createBaseController = (
   ): Promise<void> => {
     try {
       const { id } = req.params;
+      const data = prepareData(req.body);
+
+      const existingItem = await (prisma as any)[model].findUnique({
+        where: { id: Number(id) },
+      });
+
+      if (!existingItem) {
+        sendResponse(
+          res,
+          {
+            success: false,
+            message: getEntityMessages().notFound,
+          },
+          404
+        );
+        return;
+      }
+
       const updatedItem = await (prisma as any)[model].update({
         where: { id: Number(id) },
-        data: req.body,
+        data,
         include: defaultInclude,
       });
 
+      postUpdate(updatedItem);
+
       sendResponse(res, {
         success: true,
-        data: excludeFields(updatedItem),
+        data: cleanObjectBeforeSend(updatedItem),
         message: getEntityMessages().updated,
       });
     } catch (error) {
-      const errorResponse = handlePrismaError(
-        error,
-        `Error al actualizar ${model}`
-      );
-      sendResponse(res, errorResponse, errorResponse.statusCode);
+      next(error);
     }
   };
 

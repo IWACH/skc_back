@@ -1,5 +1,5 @@
 import { createBaseController } from "../../base/baseController";
-import { EntityType } from "../../enums/entity.enum";
+import { EntityType } from "../../../models/entity.enum";
 
 const typeController = createBaseController(EntityType.TYPE, {
   searchFields: ["type", "value", "label"],

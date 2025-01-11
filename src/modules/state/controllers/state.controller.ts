@@ -2,7 +2,7 @@ import { NextFunction, Request, Response } from "express";
 
 import prisma from "../../../config/database";
 import { createBaseController } from "../../base/baseController";
-import { EntityType } from "../../enums/entity.enum";
+import { EntityType } from "../../../models/entity.enum";
 
 const stateController = createBaseController(EntityType.STATE, {
   searchFields: ["name", "code"],

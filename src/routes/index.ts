@@ -4,6 +4,7 @@ import countryRoutes from "../modules/country/routes/country.routes";
 import typeRoutes from "../modules/type/routes/type.routes";
 import stateRoutes from "../modules/state/routes/state.routes";
 import provinceRoutes from "../modules/province/routes/province.routes";
+import districtRoutes from "../modules/district/routes/district.routes";
 
 const router = Router();
 
@@ -12,4 +13,5 @@ router.use(typeRoutes);
 router.use(countryRoutes);
 router.use(stateRoutes);
 router.use(provinceRoutes);
+router.use(districtRoutes);
 export default router;

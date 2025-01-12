@@ -3,4 +3,6 @@ export enum EntityType {
   COUNTRY = "country",
   STATE = "state",
   PROVINCE = "province",
+  DISTRICT = "district",
 }
+

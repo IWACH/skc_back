@@ -1,0 +1,19 @@
+model Province {
+  id          Int      @id @default(autoincrement())
+  name        String
+  code        String?  @db.VarChar(5)
+  
+  // Metadatos
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  // Relaciones
+  state       State    @relation(fields: [stateId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  stateId     Int      @map("state_id")
+  districts   District[]
+
+  @@map("provinces")
+  @@index([stateId])
+  @@unique([stateId, name])
+} 

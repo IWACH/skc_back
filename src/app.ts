@@ -2,8 +2,8 @@
 import express from "express";
 import cors from "cors";
 
-import routes from "./routes";
-import { errorMiddleware } from "./shared/errors/middleware/error.middleware";
+import routes from "./api/routes";
+import { errorMiddleware } from "./api/middlewares/error.middleware";
 
 // Constants configuration
 const PORT = 8000;
